@@ -2,243 +2,167 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Lock, Eye, Zap, LogOut, Download } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { Save, Lock, Bell, Eye, Shield, Smartphone } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Settings() {
+  const { user, logout } = useAuth();
   const [settings, setSettings] = useState({
+    email: user?.email || "",
+    name: user?.name || "",
+    twoFAEnabled: false,
     emailNotifications: true,
     pushNotifications: false,
-    twoFactorEnabled: true,
-    darkMode: true,
-    orderNotifications: true,
+    tradingAlerts: true,
     priceAlerts: true,
-    socialNotifications: false,
+    theme: "dark",
   });
+  const [saving, setSaving] = useState(false);
 
-  const [profile, setProfile] = useState({
-    name: "John Trader",
-    email: "john@example.com",
-    bio: "Crypto trader and analyst",
-  });
-
-  const handleToggle = (key: keyof typeof settings) => {
-    setSettings({ ...settings, [key]: !settings[key] });
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success("Settings saved successfully");
+    } catch (error) {
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Settings</CardTitle>
-          <CardDescription>Manage your account information</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Full Name</label>
-            <Input
-              value={profile.name}
-              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-              className="bg-gray-900 border-gray-700"
-            />
-          </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-white">Settings</h1>
+        <p className="text-gray-400">Manage your account and preferences</p>
+      </div>
 
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Email</label>
-            <Input
-              value={profile.email}
-              disabled
-              className="bg-gray-900 border-gray-700 opacity-50"
-            />
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-          </div>
+      <Tabs defaultValue="account" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
+        </TabsList>
 
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Bio</label>
-            <Input
-              value={profile.bio}
-              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-              placeholder="Tell us about yourself..."
-              className="bg-gray-900 border-gray-700"
-            />
-          </div>
-
-          <Button className="bg-purple-600 hover:bg-purple-700 w-full">Save Changes</Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            Notifications
-          </CardTitle>
-          <CardDescription>Control how you receive updates</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Email Notifications</p>
-              <p className="text-xs text-gray-400">Receive updates via email</p>
-            </div>
-            <Switch
-              checked={settings.emailNotifications}
-              onCheckedChange={() => handleToggle("emailNotifications")}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Push Notifications</p>
-              <p className="text-xs text-gray-400">Browser push alerts</p>
-            </div>
-            <Switch
-              checked={settings.pushNotifications}
-              onCheckedChange={() => handleToggle("pushNotifications")}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Order Notifications</p>
-              <p className="text-xs text-gray-400">Get notified on trade execution</p>
-            </div>
-            <Switch
-              checked={settings.orderNotifications}
-              onCheckedChange={() => handleToggle("orderNotifications")}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Price Alerts</p>
-              <p className="text-xs text-gray-400">Notify on price movements</p>
-            </div>
-            <Switch
-              checked={settings.priceAlerts}
-              onCheckedChange={() => handleToggle("priceAlerts")}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Social Notifications</p>
-              <p className="text-xs text-gray-400">Updates on posts and messages</p>
-            </div>
-            <Switch
-              checked={settings.socialNotifications}
-              onCheckedChange={() => handleToggle("socialNotifications")}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="w-5 h-5" />
-            Security
-          </CardTitle>
-          <CardDescription>Protect your account</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Two-Factor Authentication</p>
-              <p className="text-xs text-gray-400">
-                {settings.twoFactorEnabled ? "Enabled" : "Disabled"}
-              </p>
-            </div>
-            <Badge className={settings.twoFactorEnabled ? "bg-green-600" : "bg-gray-600"}>
-              {settings.twoFactorEnabled ? "Active" : "Inactive"}
-            </Badge>
-          </div>
-
-          <Button variant="outline" className="w-full">
-            <Lock className="w-4 h-4 mr-2" />
-            Change Password
-          </Button>
-
-          <Button variant="outline" className="w-full">
-            <Eye className="w-4 h-4 mr-2" />
-            View Active Sessions
-          </Button>
-
-          <Button variant="outline" className="w-full">
-            <Zap className="w-4 h-4 mr-2" />
-            Manage API Keys
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="w-5 h-5" />
-            Appearance
-          </CardTitle>
-          <CardDescription>Customize your experience</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg">
-            <div>
-              <p className="text-sm font-semibold">Dark Mode</p>
-              <p className="text-xs text-gray-400">Use dark theme</p>
-            </div>
-            <Switch
-              checked={settings.darkMode}
-              onCheckedChange={() => handleToggle("darkMode")}
-            />
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold mb-2">Chart Theme</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="border-purple-500 bg-purple-600/20">
-                Dark
+        <TabsContent value="account" className="space-y-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-300">Full Name</label>
+                <Input value={settings.name} onChange={(e) => setSettings({...settings, name: e.target.value})} className="bg-gray-800 border-gray-700 text-white mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-300">Email</label>
+                <Input type="email" value={settings.email} onChange={(e) => setSettings({...settings, email: e.target.value})} className="bg-gray-800 border-gray-700 text-white mt-1" />
+              </div>
+              <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 mr-2" /> {saving ? "Saving..." : "Save Changes"}
               </Button>
-              <Button variant="outline">Light</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Data & Privacy</CardTitle>
-          <CardDescription>Manage your data</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full">
-            <Download className="w-4 h-4 mr-2" />
-            Download My Data
-          </Button>
+        <TabsContent value="security" className="space-y-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="w-5 h-5" /> Two-Factor Authentication
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-white">2FA Status</p>
+                  <p className="text-sm text-gray-400">Protect your account with 2FA</p>
+                </div>
+                <Badge variant={settings.twoFAEnabled ? "default" : "secondary"}>
+                  {settings.twoFAEnabled ? "Enabled" : "Disabled"}
+                </Badge>
+              </div>
+              <Button onClick={() => setSettings({...settings, twoFAEnabled: !settings.twoFAEnabled})} className="bg-purple-600 hover:bg-purple-700">
+                <Smartphone className="w-4 h-4 mr-2" /> {settings.twoFAEnabled ? "Disable" : "Enable"} 2FA
+              </Button>
+            </CardContent>
+          </Card>
 
-          <Button variant="outline" className="w-full">
-            <Zap className="w-4 h-4 mr-2" />
-            View Privacy Policy
-          </Button>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input type="password" placeholder="Current Password" className="bg-gray-800 border-gray-700 text-white" />
+              <Input type="password" placeholder="New Password" className="bg-gray-800 border-gray-700 text-white" />
+              <Input type="password" placeholder="Confirm Password" className="bg-gray-800 border-gray-700 text-white" />
+              <Button className="bg-blue-600 hover:bg-blue-700">Update Password</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <Button variant="outline" className="w-full">
-            <Zap className="w-4 h-4 mr-2" />
-            View Terms of Service
-          </Button>
-        </CardContent>
-      </Card>
+        <TabsContent value="notifications" className="space-y-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" /> Notification Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { label: "Email Notifications", key: "emailNotifications" },
+                { label: "Push Notifications", key: "pushNotifications" },
+                { label: "Trading Alerts", key: "tradingAlerts" },
+                { label: "Price Alerts", key: "priceAlerts" },
+              ].map((notif) => (
+                <label key={notif.key} className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={settings[notif.key as keyof typeof settings] as boolean} onChange={(e) => setSettings({...settings, [notif.key]: e.target.checked})} className="rounded" />
+                  <span className="text-white">{notif.label}</span>
+                </label>
+              ))}
+              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 w-full">
+                Save Preferences
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card className="border-red-500/30 bg-red-900/10">
+        <TabsContent value="preferences" className="space-y-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle>Display Preferences</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-300">Theme</label>
+                <select value={settings.theme} onChange={(e) => setSettings({...settings, theme: e.target.value})} className="w-full bg-gray-800 border border-gray-700 text-white rounded px-3 py-2 mt-1">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                  <option value="auto">Auto</option>
+                </select>
+              </div>
+              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 w-full">
+                Save Preferences
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Card className="bg-red-950 border-red-900">
         <CardHeader>
           <CardTitle className="text-red-400">Danger Zone</CardTitle>
-          <CardDescription>Irreversible actions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full text-red-400 border-red-500/50 hover:bg-red-900/20">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out All Devices
+          <Button variant="destructive" className="w-full" onClick={logout}>
+            Logout
           </Button>
-
-          <Button variant="outline" className="w-full text-red-400 border-red-500/50 hover:bg-red-900/20">
+          <Button variant="destructive" className="w-full">
             Delete Account
           </Button>
         </CardContent>
